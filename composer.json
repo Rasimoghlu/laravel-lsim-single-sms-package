@@ -1,0 +1,30 @@
+{
+    "name": "sarkhanrasimoghlu/lsim",
+    "description": "Lsim Single Sms",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Sarkhanrasimoghlu\\Lsim\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sarkhan Rasimoghlu",
+            "email": "nasibovsarxan92@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": "^9.1.1",
+        "guzzlehttp/guzzle": "^7.2"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Sarkhanrasimoghlu\\Lsim\\SmsServiceProvider"
+            ]
+        }
+    }
+}
