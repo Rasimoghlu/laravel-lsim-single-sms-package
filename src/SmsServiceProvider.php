@@ -29,6 +29,7 @@ class SmsServiceProvider extends ServiceProvider
             __DIR__ . '/../config/sms.php',
             'sms'
         );
+
         $this->publishes([
             __DIR__ . '/../config/sms.php' => config_path('sms.php')
         ], 'sms-config');
