@@ -15,6 +15,12 @@
 composer require sarkhanrasimoghlu/lsim
 ```
 
+## For export config file
+
+```
+php artisan vendor:publish --tag=sms-config
+```
+
 ## Configuration Env File
 
 ```
@@ -26,11 +32,8 @@ SMS_BASE_URL="Your Api Url"
 
 ## Usage
 
-```ruby
-$sms = new \Sarkhanrasimoghlu\Lsim\Sms();
-
-$sms->send('sms text', 'phone');
-
+```php
+return Sms::send('smsText', 'toNumber');
 ```
 
 
