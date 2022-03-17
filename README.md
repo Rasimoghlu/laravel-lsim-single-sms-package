@@ -41,6 +41,8 @@ return SmsFacade::send('smsText', 'toNumber');
 
 * Check Balance
     * First you have to make SMS_CHECK_BALANCE_URL to TRUE in your env file.
+    * After making your SMS_CHECK_BALANCE_URL true, write this in your url.
+      http://your-url.test/sms-balance
     * Then you can see your balance.
 
 ![](images/balance.png)
