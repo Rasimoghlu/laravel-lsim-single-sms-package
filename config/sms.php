@@ -16,6 +16,7 @@ return [
         'password' => env('SMS_PASSWORD', null),
         'sender' => env('SMS_SENDER', null),
         'url' => env('SMS_BASE_URL', null),
+        'balanceUrl' => env('SMS_CHECK_BALANCE_URL', false),
     ],
 
 ];

@@ -3,7 +3,12 @@
 namespace Sarkhanrasimoghlu\Lsim;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Http\JsonResponse;
+use JsonException;
+use Sarkhanrasimoghlu\Lsim\Exceptions\InvalidCheckBalanceUrlException;
+use Sarkhanrasimoghlu\Lsim\Exceptions\NotBalanceException;
+use Sarkhanrasimoghlu\Lsim\Traits\CheckBalanceTrait;
+use Sarkhanrasimoghlu\Lsim\Traits\SendSmsTrait;
 
 /**
  * Class Sms
@@ -11,12 +16,14 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class Sms
 {
+    use SendSmsTrait, CheckBalanceTrait;
+
     private $login;
     private $password;
-    private $key;
     private $msisdn;
     private $sender;
     private $url;
+    private $balanceUrl = 'http://apps.lsim.az/quicksms/v1/balance?';
     protected $text;
     protected $client;
 
@@ -27,40 +34,31 @@ class Sms
         $this->sender = config('sms.credentials.sender');
         $this->url = config('sms.credentials.url');
         $this->client = new Client();
-
     }
 
     /**
-     * @throws GuzzleException
      * @param $text
      * @param $phone
+     * @return mixed
+     * @throws NotBalanceException
      */
     public function send($text, $phone)
     {
-        $this->text = $text;
-        $this->msisdn = $phone;
-        $this->generateKey();
-        return $this->sendSmsRequest();
+        return $this->sendSms($text, $phone);
     }
 
     /**
-     * @throws GuzzleException
+     * @throws InvalidCheckBalanceUrlException
+     * @throws JsonException
      */
-    public function sendSmsRequest()
+    public function checkBalance(): JsonResponse
     {
-        return $this->client->request('GET', $this->url, ['query' => [
-            'login' => $this->login,
-            'msisdn' => $this->msisdn,
-            'text' => $this->text,
-            'sender' => $this->sender,
-            'key' => $this->key,
-            'unicode' => true
-        ]]);
+        return $this->balance();
     }
 
-    private function generateKey(): void
-    {
-        $this->key = md5(md5($this->password) . $this->login . $this->text . $this->msisdn . $this->sender);
-    }
+//    public function smsRoutes()
+//    {
+//        require __DIR__.'/../routes/web.php';
+//    }
 
 }

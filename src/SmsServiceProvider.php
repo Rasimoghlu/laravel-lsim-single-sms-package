@@ -33,6 +33,15 @@ class SmsServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../config/sms.php' => config_path('sms.php')
         ], 'sms-config');
+
+        $this->publishes([
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/sms')
+        ], 'sms-views');
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'sms');
+
     }
 
 }

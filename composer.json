@@ -1,6 +1,16 @@
 {
     "name": "sarkhanrasimoghlu/lsim",
     "description": "Lsim Single Sms",
+    "keywords": [
+        "lsim",
+        "laravel",
+        "sms gonder",
+        "send sms",
+        "laravel sms",
+        "php",
+        "sendsms.az"
+    ],
+    "homepage": "https://github.com/Rasimoghlu/laravel-lsim-single-sms-package",
     "type": "library",
     "license": "MIT",
     "autoload": {
