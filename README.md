@@ -41,13 +41,7 @@ return SmsFacade::send('smsText', 'toNumber');
 
 * Check Balance
     * First you have to make SMS_CHECK_BALANCE_URL to TRUE in your env file.
-    * Then you have to add this code in your route file.
-
-```php
-SmsFacade::smsRoutes();
-```
-
-* Now you can see your balance like this.
+    * Then you can see your balance.
 
 ![](images/balance.png)
 
