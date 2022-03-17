@@ -3,16 +3,16 @@
 namespace Sarkhanrasimoghlu\Lsim\Facade;
 
 use Illuminate\Support\Facades\Facade;
+use Sarkhanrasimoghlu\Lsim\Sms;
 
 class SmsFacade extends Facade
 {
     /**
-     * Get the registered name of the component.
-     *
-     * @return string
+     * @method static send(string $text, string $phone)
+     * @see Sms
      */
     protected static function getFacadeAccessor()
     {
-        return 'sms';
+        return 'Sms';
     }
 }

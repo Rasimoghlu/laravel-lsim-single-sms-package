@@ -11,13 +11,14 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class Sms
 {
-    protected $login;
-    protected $password;
-    protected $key;
-    protected $msisdn;
+    private $login;
+    private $password;
+    private $key;
+    private $msisdn;
+    private $sender;
+    private $url;
     protected $text;
-    protected $sender;
-    protected $url;
+    protected $client;
 
     public function __construct()
     {
@@ -25,27 +26,29 @@ class Sms
         $this->password = config('sms.credentials.password');
         $this->sender = config('sms.credentials.sender');
         $this->url = config('sms.credentials.url');
+        $this->client = new Client();
+
     }
 
     /**
      * @throws GuzzleException
+     * @param $text
+     * @param $phone
      */
-    public function send($text, $phone): void
+    public function send($text, $phone)
     {
         $this->text = $text;
         $this->msisdn = $phone;
         $this->generateKey();
-        $this->sendSmsRequest();
+        return $this->sendSmsRequest();
     }
 
     /**
      * @throws GuzzleException
      */
-    public function sendSmsRequest(): void
+    public function sendSmsRequest()
     {
-        $client = new Client();
-
-        $client->request('GET', $this->url, ['query' => [
+        return $this->client->request('GET', $this->url, ['query' => [
             'login' => $this->login,
             'msisdn' => $this->msisdn,
             'text' => $this->text,
@@ -55,7 +58,7 @@ class Sms
         ]]);
     }
 
-    public function generateKey(): void
+    private function generateKey(): void
     {
         $this->key = md5(md5($this->password) . $this->login . $this->text . $this->msisdn . $this->sender);
     }

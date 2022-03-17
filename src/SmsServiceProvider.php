@@ -2,9 +2,7 @@
 
 namespace Sarkhanrasimoghlu\Lsim;
 
-use Illuminate\Foundation\AliasLoader;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Sarkhanrasimoghlu\Lsim\Facade\SmsFacade;
 
 class SmsServiceProvider extends ServiceProvider
 {
@@ -15,10 +13,7 @@ class SmsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $loader = AliasLoader::getInstance();
-        $loader->alias('sms', SmsFacade::class);
-
-        $this->app->singleton('sms', function () {
+        $this->app->singleton('Sms', function () {
             return new Sms();
         });
     }

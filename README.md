@@ -33,7 +33,7 @@ SMS_BASE_URL="Your Api Url"
 ## Usage
 
 ```php
-return Sms::send('smsText', 'toNumber');
+return SmsFacade::send('smsText', 'toNumber');
 ```
 
 
