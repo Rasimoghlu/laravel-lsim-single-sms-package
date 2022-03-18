@@ -46,7 +46,6 @@ return SmsFacade::send('smsText', 'toNumber');
 ```php
 SmsFacade::smsRoutes();
 ```
-
       
 * Now you can write this url http://your-url.test/sms-balance on your browser to see your balance like this.
 
