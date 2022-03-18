@@ -56,4 +56,9 @@ class Sms
         return $this->balance();
     }
 
+    public function smsRoutes()
+    {
+        require __DIR__ . '/../routes/sms.php';
+    }
+
 }
