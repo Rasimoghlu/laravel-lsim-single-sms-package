@@ -1,24 +1,32 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Sarkhanrasimoghlu\Lsim\Controller;
 
-use App\Http\Controllers\Controller;
-use JsonException;
-use Sarkhanrasimoghlu\Lsim\Facade\SmsFacade;
-use Sarkhanrasimoghlu\Lsim\Traits\CheckBalanceTrait;
+use Illuminate\Routing\Controller;
+use Illuminate\View\View;
+use Sarkhanrasimoghlu\Lsim\Contracts\SmsServiceInterface;
 
+/**
+ * SMS Controller
+ */
 class SmsController extends Controller
 {
-    use CheckBalanceTrait;
+    public function __construct(
+        private readonly SmsServiceInterface $smsService
+    ) {}
 
     /**
-     * @throws JsonException
+     * Show balance page
      */
-    public function showBalance()
+    public function showBalance(): View
     {
-        $balanceResponse = json_decode(SmsFacade::checkBalance()->content(), true, 512, JSON_THROW_ON_ERROR);
-
-        return view('sms::balance', compact('balanceResponse'));
+        $response = $this->smsService->getBalance();
+        
+        return view('sms::balance', [
+            'balance' => $response->isSuccessful() ? $response->getBalance() : 0,
+            'success' => $response->isSuccessful()
+        ]);
     }
 }
