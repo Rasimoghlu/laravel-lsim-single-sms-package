@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Sarkhanrasimoghlu\Lsim\DataTransferObjects;
 
-final readonly class BalanceResponse
+use Sarkhanrasimoghlu\Lsim\Enums\DeliveryStatus;
+
+final readonly class ReportResponse
 {
     public function __construct(
         public bool $success,
-        public ?int $balance = null,
+        public ?DeliveryStatus $status = null,
         public ?string $errorMessage = null,
         public array $rawResponse = [],
     ) {}
@@ -18,9 +20,14 @@ final readonly class BalanceResponse
         return $this->success;
     }
 
-    public function getBalance(): ?int
+    public function isDelivered(): bool
     {
-        return $this->balance;
+        return $this->success && $this->status?->isDelivered() === true;
+    }
+
+    public function getStatus(): ?DeliveryStatus
+    {
+        return $this->status;
     }
 
     public function getErrorMessage(): ?string
@@ -33,21 +40,11 @@ final readonly class BalanceResponse
         return $this->rawResponse;
     }
 
-    public function isSufficient(int $requiredAmount): bool
-    {
-        return $this->success && $this->balance !== null && $this->balance >= $requiredAmount;
-    }
-
-    public function isLow(int $threshold = 10): bool
-    {
-        return $this->success && $this->balance !== null && $this->balance < $threshold;
-    }
-
-    public static function success(int $balance, array $rawResponse = []): self
+    public static function success(DeliveryStatus $status, array $rawResponse = []): self
     {
         return new self(
             success: true,
-            balance: $balance,
+            status: $status,
             rawResponse: $rawResponse,
         );
     }

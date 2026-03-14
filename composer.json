@@ -1,14 +1,14 @@
 {
     "name": "sarkhanrasimoghlu/lsim",
-    "description": "Lsim Single Sms",
+    "description": "Laravel package for LSIM SMS gateway integration (send SMS, check balance, delivery reports)",
     "keywords": [
         "lsim",
         "laravel",
-        "sms gonder",
+        "sms",
         "send sms",
         "laravel sms",
         "php",
-        "sendsms.az"
+        "quicksms"
     ],
     "homepage": "https://github.com/Rasimoghlu/laravel-lsim-single-sms-package",
     "type": "library",
@@ -18,13 +18,17 @@
             "Sarkhanrasimoghlu\\Lsim\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Sarkhanrasimoghlu\\Lsim\\Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Sarkhan Rasimoghlu",
             "email": "nasibovsarxan92@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^12.0",
@@ -47,7 +51,10 @@
         "laravel": {
             "providers": [
                 "Sarkhanrasimoghlu\\Lsim\\SmsServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "SMS": "Sarkhanrasimoghlu\\Lsim\\Facades\\SMS"
+            }
         }
     }
 }

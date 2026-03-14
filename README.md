@@ -1,23 +1,9 @@
-# Lsim Single SMS Package
+# LSIM SMS Package for Laravel
 
 [![Latest Version](https://img.shields.io/packagist/v/sarkhanrasimoghlu/lsim.svg?style=flat-square)](https://packagist.org/packages/sarkhanrasimoghlu/lsim)
-[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/Rasimoghlu/laravel-lsim-single-sms-package/Tests/main?label=tests)](https://github.com/Rasimoghlu/laravel-lsim-single-sms-package/actions?query=workflow%3ATests+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/sarkhanrasimoghlu/lsim.svg?style=flat-square)](https://packagist.org/packages/sarkhanrasimoghlu/lsim)
 
-**Professional Laravel SMS package for L-sim SMS service integration built with SOLID principles and modern PHP standards.**
-
-This package provides a clean, type-safe, and testable way to integrate L-sim SMS services into your Laravel applications. It features both modern dependency-injection-based API and legacy compatibility for existing projects.
-
-## ✨ Features
-
-- 🏗️ **SOLID Architecture** - Built with dependency injection and interface-driven design
-- 🔒 **Type Safety** - Full PHP 8.3+ type declarations and strict typing
-- 🧪 **100% Testable** - Comprehensive unit and integration tests included
-- 📚 **Rich Documentation** - Complete PHPDoc and usage examples
-- ⚡ **Performance Optimized** - Efficient HTTP client with configurable timeouts
-- 🔄 **Clean Architecture** - No legacy code, pure modern implementation
-- 🛡️ **Secure** - HTTPS enforcement and input validation
-- 🔧 **Developer Friendly** - Clear error messages and debugging support
+Laravel package for LSIM SMS gateway integration. Send SMS, check balance, and track delivery reports.
 
 ## Requirements
 
@@ -29,389 +15,177 @@ This package provides a clean, type-safe, and testable way to integrate L-sim SM
 
 ## Installation
 
-Install the package via Composer:
-
 ```bash
 composer require sarkhanrasimoghlu/lsim
 ```
 
-The package will automatically register its service provider thanks to Laravel's package auto-discovery.
+The service provider and `SMS` facade are registered automatically via package auto-discovery.
 
 ## Configuration
 
-### 1. Publish Configuration File
+Publish the config file:
 
 ```bash
 php artisan vendor:publish --tag=sms-config
 ```
 
-### 2. Environment Variables
-
-Add these variables to your `.env` file:
+Add the following to your `.env` file:
 
 ```env
-SMS_LOGIN="Your API Login"
-SMS_PASSWORD="Your API Password"
-SMS_SENDER="Your API Sender Name"
-SMS_BASE_URL="https://apps.lsim.az/quicksms/v1/send"
-SMS_BALANCE_URL="https://apps.lsim.az/quicksms/v1/balance"
-SMS_CHECK_BALANCE_URL=true
-SMS_TIMEOUT=30
+LSIM_LOGIN=your_login
+LSIM_PASSWORD=your_password
+LSIM_SENDER=your_sender_name
 ```
 
-**⚠️ Security Note:** Always use HTTPS URLs for production environments.
+### All Configuration Options
+
+| Key | Env Variable | Default | Description |
+|-----|-------------|---------|-------------|
+| `login` | `LSIM_LOGIN` | - | API login (required) |
+| `password` | `LSIM_PASSWORD` | - | API password (required) |
+| `sender` | `LSIM_SENDER` | - | Sender name (required) |
+| `base_url` | `LSIM_BASE_URL` | `https://apps.lsim.az/quicksms` | API base URL |
+| `timeout` | `LSIM_TIMEOUT` | `30` | HTTP timeout in seconds |
+| `verify_ssl` | `LSIM_VERIFY_SSL` | `true` | Verify SSL certificates |
+| `logging.channel` | `LSIM_LOG_CHANNEL` | `stack` | Log channel |
+| `logging.level` | `LSIM_LOG_LEVEL` | `info` | Log level |
 
 ## Usage
 
-### Modern API (Recommended)
-
-#### Basic SMS Sending
+### Send SMS
 
 ```php
-<?php
+use Sarkhanrasimoghlu\Lsim\Facades\SMS;
 
+$response = SMS::send('994501234567', 'Hello World');
+
+if ($response->isSuccessful()) {
+    echo $response->getMessageId(); // transaction ID
+}
+```
+
+### Send Unicode SMS
+
+```php
+$response = SMS::send('994501234567', 'Salam dunya', unicode: true);
+```
+
+### Check Balance
+
+```php
+$response = SMS::getBalance();
+
+if ($response->isSuccessful()) {
+    echo $response->getBalance(); // integer
+}
+```
+
+### Get Delivery Report
+
+```php
+$response = SMS::getReport($transactionId);
+
+if ($response->isSuccessful()) {
+    echo $response->getStatus()->name; // e.g. "Delivered"
+    echo $response->isDelivered();     // true/false
+}
+```
+
+### Using Dependency Injection
+
+```php
 use Sarkhanrasimoghlu\Lsim\Contracts\SmsServiceInterface;
-use Sarkhanrasimoghlu\Lsim\DataTransferObjects\SmsMessage;
 
 class NotificationService
 {
     public function __construct(
-        private SmsServiceInterface $smsService
+        private SmsServiceInterface $sms,
     ) {}
 
-    public function sendWelcomeSms(string $phoneNumber, string $userName): void
+    public function notify(string $phone, string $text): bool
     {
-        $message = new SmsMessage(
-            text: "Welcome to our platform, {$userName}!",
-            phoneNumber: $phoneNumber
-        );
-
-        $response = $this->smsService->send($message);
-
-        if ($response->isSuccessful()) {
-            logger()->info('SMS sent successfully', [
-                'message_id' => $response->getMessageId(),
-                'phone' => $phoneNumber,
-            ]);
-        } else {
-            logger()->error('SMS sending failed', [
-                'error' => $response->getErrorMessage(),
-                'error_code' => $response->getErrorCode(),
-            ]);
-        }
+        $response = $this->sms->send($phone, $text);
+        return $response->isSuccessful();
     }
 }
 ```
 
-#### Advanced SMS Sending with Error Handling
+### Error Handling
 
 ```php
-<?php
-
-use Sarkhanrasimoghlu\Lsim\Contracts\SmsServiceInterface;
-use Sarkhanrasimoghlu\Lsim\DataTransferObjects\SmsMessage;
-use Sarkhanrasimoghlu\Lsim\Exceptions\InvalidMessageException;
+use Sarkhanrasimoghlu\Lsim\Facades\SMS;
 use Sarkhanrasimoghlu\Lsim\Exceptions\SmsException;
+use Sarkhanrasimoghlu\Lsim\Exceptions\InvalidMessageException;
 
-class SmsNotificationService
-{
-    public function __construct(
-        private SmsServiceInterface $smsService
-    ) {}
+try {
+    $response = SMS::send($phone, $text);
 
-    public function sendOtpCode(string $phoneNumber, string $otpCode): bool
-    {
-        try {
-            // Create message with validation
-            $message = new SmsMessage(
-                text: "Your OTP code is: {$otpCode}. Valid for 5 minutes.",
-                phoneNumber: $phoneNumber
-            );
-
-            // Send SMS
-            $response = $this->smsService->send($message);
-
-            if ($response->isSuccessful()) {
-                // Log success
-                logger()->info('OTP SMS sent', [
-                    'phone' => $phoneNumber,
-                    'message_id' => $response->getMessageId(),
-                ]);
-                return true;
-            }
-
-            // Handle API errors
-            logger()->warning('OTP SMS failed', [
-                'phone' => $phoneNumber,
-                'error' => $response->getErrorMessage(),
-                'error_code' => $response->getErrorCode(),
-            ]);
-
-            return false;
-
-        } catch (InvalidMessageException $e) {
-            // Handle validation errors
-            logger()->error('Invalid SMS message', [
-                'phone' => $phoneNumber,
-                'error' => $e->getMessage(),
-            ]);
-            return false;
-
-        } catch (SmsException $e) {
-            // Handle service errors
-            logger()->error('SMS service error', [
-                'phone' => $phoneNumber,
-                'error' => $e->getMessage(),
-            ]);
-            return false;
-        }
+    if ($response->hasError()) {
+        $errorCode = $response->getErrorCode(); // ErrorCode enum or null
+        $errorMessage = $response->getErrorMessage();
     }
+} catch (InvalidMessageException $e) {
+    // Invalid phone number or message text
+} catch (SmsException $e) {
+    // HTTP or other service error
 }
 ```
 
-#### Balance Management
+## Error Codes
 
-```php
-<?php
+| Code | Enum Case | Description |
+|------|-----------|-------------|
+| -100 | `InvalidKey` | Invalid API key |
+| -101 | `TextTooLong` | Message text is too long |
+| -102 | `WrongNumberFormat` | Wrong phone number format |
+| -103 | `InvalidSenderName` | Invalid sender name |
+| -104 | `InsufficientBalance` | Insufficient account balance |
+| -105 | `NumberInBlackList` | Phone number is in the blacklist |
+| -106 | `InvalidTransactionId` | Invalid transaction ID |
+| -107 | `IpNotAllowed` | IP address is not allowed |
+| -108 | `InvalidHash` | Invalid hash signature |
+| -109 | `NoHost` | No host available |
+| -110 | `ReportingLimitExceeded` | Reporting limit exceeded |
+| -500 | `InternalError` | Internal server error |
 
-use Sarkhanrasimoghlu\Lsim\Contracts\SmsServiceInterface;
-use Sarkhanrasimoghlu\Lsim\Exceptions\BalanceException;
+## Delivery Statuses
 
-class BalanceMonitorService
-{
-    private const LOW_BALANCE_THRESHOLD = 10.0;
+| Code | Enum Case | Description |
+|------|-----------|-------------|
+| 100 | `InQueue` | Message is in queue |
+| 101 | `Delivered` | Message delivered successfully |
+| 102 | `Undelivered` | Message could not be delivered |
+| 103 | `Expired` | Message expired |
+| 104 | `Rejected` | Message rejected |
+| 105 | `Cancelled` | Message cancelled |
+| 106 | `Error` | Delivery error |
+| 107 | `Unknown` | Unknown delivery status |
+| 108 | `Sent` | Message sent to operator |
+| 109 | `BlackList` | Number is in blacklist |
 
-    public function __construct(
-        private SmsServiceInterface $smsService
-    ) {}
+## API Endpoints
 
-    public function checkBalanceStatus(): array
-    {
-        try {
-            $response = $this->smsService->getBalance();
+All endpoints use GET requests. The package appends these paths to the `base_url`:
 
-            if (!$response->isSuccessful()) {
-                throw new BalanceException('Failed to retrieve balance: ' . $response->getErrorMessage());
-            }
-
-            $balance = $response->getBalance();
-            $isLow = $response->isLow(self::LOW_BALANCE_THRESHOLD);
-
-            if ($isLow) {
-                // Send alert to administrators
-                $this->alertLowBalance($balance);
-            }
-
-            return [
-                'balance' => $balance,
-                'currency' => $response->getCurrency(),
-                'is_low' => $isLow,
-                'can_send_sms' => $response->isSufficient(1.0),
-            ];
-
-        } catch (BalanceException $e) {
-            logger()->error('Balance check failed', ['error' => $e->getMessage()]);
-            
-            return [
-                'balance' => null,
-                'currency' => null,
-                'is_low' => false,
-                'can_send_sms' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
-
-    private function alertLowBalance(float $balance): void
-    {
-        // Implementation for low balance alerts
-        logger()->alert('SMS balance is low', ['balance' => $balance]);
-    }
-}
-```
-
-
-## Balance Check Web Interface
-
-### Enable Balance Route
-
-First, make sure balance checking is enabled in your configuration:
-
-```env
-SMS_CHECK_BALANCE_URL=true
-```
-
-### Access Balance Page
-
-Visit `http://your-domain.com/sms-balance` to see your current balance in a web interface.
-
-### Customize Balance View
-
-Publish the view files to customize the balance page:
-
-```bash
-php artisan vendor:publish --tag=sms-views
-```
-
-The view will be published to `resources/views/vendor/sms/balance.blade.php`.
-
-## Advanced Configuration
-
-
-### Rate Limiting
-
-Configure rate limiting to prevent abuse:
-
-```php
-// config/sms.php
-'rate_limiting' => [
-    'enabled' => env('SMS_RATE_LIMIT_ENABLED', false),
-    'max_attempts' => env('SMS_RATE_LIMIT_MAX', 10),
-    'decay_minutes' => env('SMS_RATE_LIMIT_DECAY', 1),
-],
-```
-
-### Security Settings
-
-```php
-// config/sms.php
-'security' => [
-    'verify_ssl' => env('SMS_VERIFY_SSL', true),
-    'allowed_recipients' => env('SMS_ALLOWED_RECIPIENTS'), // For testing
-],
-```
+| Endpoint | Path | Description |
+|----------|------|-------------|
+| Send SMS | `/v1/send` | Send a single SMS |
+| Balance | `/v1/balance` | Check account balance |
+| Report | `/v1/report` | Get delivery report by transaction ID |
 
 ## Testing
 
-This package includes comprehensive unit and integration tests.
-
-### Running Tests
-
-**Run all tests:**
 ```bash
 composer test
 ```
 
-**Run only unit tests:**
-```bash
-composer test-unit
-```
+Run with coverage:
 
-**Run only feature/integration tests:**
-```bash
-composer test-feature
-```
-
-**Run tests with coverage report:**
 ```bash
 composer test-coverage
 ```
 
-**Run specific test:**
-```bash
-composer test-filter SmsMessageTest
-```
-
-### Test Structure
-
-The package follows Laravel testing best practices:
-
-- **Unit Tests** (`tests/Unit/`): Test individual classes and methods
-- **Feature Tests** (`tests/Feature/`): Test full integration with Laravel framework
-- **Test Base Class** (`tests/TestCase.php`): Provides common setup for package testing
-
-### Writing Custom Tests
-
-If you extend this package, you can use our base test case:
-
-```php
-<?php
-
-namespace YourNamespace\Tests;
-
-use Sarkhanrasimoghlu\Lsim\Tests\TestCase;
-
-class YourCustomTest extends TestCase
-{
-    public function test_your_functionality(): void
-    {
-        // Your test code here
-        $this->assertTrue(true);
-    }
-}
-```
-
-
-## Architecture
-
-This package follows SOLID principles and modern PHP practices:
-
-### Design Patterns Used
-
-- **Dependency Injection**: All dependencies are injected via constructor
-- **Interface Segregation**: Small, focused interfaces
-- **Strategy Pattern**: Configurable HTTP client and SMS service implementations
-- **Data Transfer Objects**: Immutable value objects for data transport
-- **Controller Pattern**: Laravel controllers for HTTP endpoints
-
-### Key Components
-
-```
-src/
-├── Contracts/              # Interfaces (Dependency Inversion)
-│   ├── SmsServiceInterface.php
-│   ├── HttpClientInterface.php
-│   └── ConfigurationInterface.php
-├── Services/               # Business Logic (Single Responsibility)
-│   └── LsimSmsService.php
-├── DataTransferObjects/    # Immutable Data Objects
-│   ├── SmsMessage.php
-│   ├── SmsResponse.php
-│   └── BalanceResponse.php
-├── Configuration/          # Configuration Management
-│   └── LsimConfiguration.php
-├── Http/                   # HTTP Client Abstraction
-│   └── GuzzleHttpClient.php
-├── Exceptions/            # Custom Exception Hierarchy
-│   ├── SmsException.php
-│   ├── BalanceException.php
-│   └── ...
-└── Controller/            # HTTP Controllers
-    └── SmsController.php
-```
-
-## Development
-
-### Code Quality
-
-**Run static analysis:**
-```bash
-composer analyse
-```
-
-**Check code style:**
-```bash
-composer check-style
-```
-
-**Fix code style:**
-```bash
-composer fix-style
-```
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for your feature
-4. Ensure all tests pass: `composer test`
-5. Submit a pull request
-
-## Error Handling
-
-The package provides detailed error handling:
-
-### Exception Hierarchy
+## Exception Hierarchy
 
 ```
 SmsException (base)
@@ -421,108 +195,6 @@ SmsException (base)
 └── InvalidConfigurationException
 ```
 
-### Error Response Structure
-
-```php
-// Success Response
-SmsResponse {
-    +isSuccessful(): true
-    +getMessageId(): "MSG123456"
-    +getErrorMessage(): null
-    +getRawResponse(): [...]
-}
-
-// Error Response
-SmsResponse {
-    +isSuccessful(): false
-    +getMessageId(): null
-    +getErrorMessage(): "Insufficient balance"
-    +getErrorCode(): 101
-    +getRawResponse(): [...]
-}
-```
-
-## Logging
-
-The package automatically logs important events:
-
-- SMS sending attempts and results
-- Balance check operations
-- Configuration errors
-- HTTP client errors
-
-Configure logging in your `config/logging.php`:
-
-```php
-'channels' => [
-    'sms' => [
-        'driver' => 'single',
-        'path' => storage_path('logs/sms.log'),
-        'level' => 'info',
-    ],
-],
-```
-
-## Security
-
-### Best Practices
-
-1. **Always use HTTPS** for API endpoints
-2. **Validate input** - The package validates phone numbers and message content
-3. **Rate limiting** - Configure rate limits to prevent abuse
-4. **Environment variables** - Never commit API credentials to version control
-5. **Error handling** - Don't expose sensitive information in error messages
-
-### Security Features
-
-- Input validation for phone numbers and message content
-- HTTPS enforcement for API communication
-- Configurable SSL certificate verification
-- Secure credential management via environment variables
-
-## Performance
-
-### Optimizations
-
-- **HTTP Client Pooling**: Reuses connections when possible
-- **Lazy Loading**: Services are instantiated only when needed
-- **Efficient Validation**: Fast input validation with minimal overhead
-- **Configurable Timeouts**: Prevent hanging requests
-
-### Monitoring
-
-Monitor your SMS usage:
-
-```php
-use Sarkhanrasimoghlu\Lsim\Contracts\SmsServiceInterface;
-
-// Check if you can send SMS before attempting
-$balanceResponse = $smsService->getBalance();
-if (!$balanceResponse->isSufficient(1.0)) {
-    // Handle insufficient balance
-    throw new InsufficientBalanceException();
-}
-```
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for recent changes.
-
 ## License
 
-This package is open-sourced software licensed under the [MIT license](LICENSE.md).
-
-## Support
-
-- **Documentation**: This README and inline PHPDoc comments
-- **Issues**: [GitHub Issues](https://github.com/Rasimoghlu/laravel-lsim-single-sms-package/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Rasimoghlu/laravel-lsim-single-sms-package/discussions)
-
-## Credits
-
-- **Author**: [Sarkhan Rasimoghlu](https://github.com/Rasimoghlu)
-- **All Contributors**: [Contributors List](../../contributors)
-
----
-
-**Built with ❤️ for the Laravel community**
+MIT. See [LICENSE.md](LICENSE.md) for details.

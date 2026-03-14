@@ -21,8 +21,6 @@
         <exclude>
             <directory>./vendor</directory>
             <directory>./tests</directory>
-            <file>./src/Traits/CheckBalanceTrait.php</file>
-            <file>./src/Traits/SendSmsTrait.php</file>
         </exclude>
     </source>
     
