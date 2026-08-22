@@ -1,7 +1,9 @@
 /vendor/
 /.idea/
 .phpunit.result.cache
+/.phpunit.cache/
 /coverage-html/
 /coverage.txt
 /coverage.xml
 .env
+/.claude/

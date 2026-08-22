@@ -10,8 +10,8 @@ Laravel package for LSIM SMS gateway integration. Send SMS, check balance, and t
 | Dependency | Version |
 |------------|---------|
 | PHP        | ^8.3    |
-| Laravel    | ^12.0   |
-| GuzzleHttp | ^7.8    |
+| Laravel    | ^12.0 \|\| ^13.0 |
+| GuzzleHttp | ^7.8 \|\| ^8.0  |
 
 ## Installation
 
